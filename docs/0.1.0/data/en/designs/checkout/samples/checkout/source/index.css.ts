@@ -16,7 +16,7 @@ export const customRadioStyles = Styles.style({
 
 export const customListItemStyled = Styles.style({
   display: 'block',
-  paddingLeft: 10,
+  paddingLeft: 12,
   $nest: {
     '> i-label': {
       display: "list-item",

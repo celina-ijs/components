@@ -57,6 +57,10 @@ export class PaymentModel {
     }
   ]
   private _information: any;
+  private _room: any = {
+    name: ''
+  };
+  private _booking: any;
 
   constructor(module: Module) {
     this._module = module;
@@ -78,8 +82,78 @@ export class PaymentModel {
     this._information = value;
   }
 
+  get room() {
+    return this._room;
+  }
+  set room(value: any) {
+    this._room = value;
+  }
+
+  get booking() {
+    return this._booking;
+  }
+  set booking(value: any) {
+    this._booking = value;
+  }
+
   getPayment(id: string) {
     return this._payments.find(p => p.id === id);
+  }
+
+  fetchRoom() {
+    this._room = {
+      id: '1',
+      hotel: {
+        name: 'Canary Dalat Hotel',
+        stars: 3,
+        address: '82 Tran Quang Khai Street',
+        point: 9.2,
+        reviewers: 9
+      },
+      type: 'Deluxe Triple Room',
+      nonSmoking: true,
+      includesBreakfast: true,
+      amenities: [
+        'WiFi',
+        'Free WiFi',
+        'Free Parking',
+        'Breakfast',
+        'Dining',
+        'Lunch',
+        'Snacks',
+        'Kitchen',
+        'Pool',
+        'Spa'
+      ]
+    }
+  }
+
+  fetchBooking() {
+    this._booking = {
+      id: '1',
+      checkin: '2024-12-01',
+      checkout: '2024-12-02',
+      room: '1',
+      guest: {
+        name: 'John Doe',
+        phone: '(123) 456-7890',
+        email: 'user@example.com',
+        address: '82 Tran Quang Khai Street'
+      }
+    }
+  }
+
+  getHotelStatus() {
+    const point = this.room?.hotel?.point || 0;
+    if (point < 5) {
+      return 'Not Good';
+    } else if (point >= 5 && point < 8) {
+      return 'Normal';
+    } else if (point >= 8 && point < 9) {
+      return 'Excellent';
+    } else {
+      return 'Wonderfull';
+    }
   }
 
   private updateStyle(name: string, value: any) {

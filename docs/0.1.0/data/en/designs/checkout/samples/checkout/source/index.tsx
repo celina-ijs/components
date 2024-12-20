@@ -1,4 +1,4 @@
-import { Styles, Module, RadioGroup, Panel, observable, VStack, HStack, Icon, Popover } from "@ijstech/components";
+import { Styles, Module, RadioGroup, Panel, observable, VStack, HStack, Icon, Popover, Label } from "@ijstech/components";
 import { customRadioStyles, customListItemStyled } from "./index.css";
 import { PaymentModel, IPaymentOption } from "./model";
 import Information from "./info";
@@ -22,6 +22,18 @@ export default class Payment extends Module {
     private policyPopover: Popover;
     private policyIcon: Icon;
     private pnlPolicy: VStack;
+    private infoPopover: Popover;
+    private infoIcon: Icon;
+    private pnlRoomStar: Panel;
+    private lblHotelState: Label;
+    private lblHotelReviewers: Label;
+    private lblHotelAddress: Label;
+    private lblHotelName: Label;
+    private lblHotelPoint: Label;
+
+    get room() {
+        return this.model.room;
+    }
 
     private onPaymentMethodChanged(target: RadioGroup) {
         const oldPayment = this.selectedPayment.id && this.radioMapper[this.selectedPayment.id];
@@ -117,23 +129,40 @@ export default class Payment extends Module {
         })
     }
 
+    private renderRoom() {
+        this.pnlRoomStar.clearInnerHTML();
+        if (this.room.hotel?.stars) {
+            for (let i = 0; i < this.room.hotel.stars; i++) {
+                this.pnlRoomStar.appendChild(
+                    <i-icon
+                        name='star'
+                        width='12px'
+                        height='12px'
+                        fill='var(--colors-warning-main)'
+                    >
+                    </i-icon>
+                );
+            }
+        }
+        this.lblHotelReviewers.caption = `${this.room?.hotel?.reviewers || 0} reviews`;
+        this.lblHotelState.caption = this.model.getHotelStatus();
+        this.lblHotelName.caption = this.room?.hotel?.name || '';
+        this.lblHotelAddress.caption = this.room?.hotel?.address || '';
+        this.lblHotelPoint.caption = this.room?.hotel?.point || 0;
+    }
+
     init() {
         super.init();
         this.onPaymentMethodChanged = this.onPaymentMethodChanged.bind(this);
         this.model = new PaymentModel(this);
         this.model.updateTheme();
         this.renderPaymentMethods();
-        this.policyIcon.onmouseover = (event) => {
-            event.stopImmediatePropagation();
-            event.preventDefault();
-            this.policyPopover.visible = true;
-        }
-        this.policyIcon.onmouseleave = (event) => {
-            event.stopImmediatePropagation();
-            event.preventDefault();
-            this.policyPopover.visible = false;
-        }
-        this.pnlPolicy.classList.add(customListItemStyled)
+        this.pnlPolicy.classList.add(customListItemStyled);
+        this.policyPopover.linkTo = this.policyIcon;
+        this.infoPopover.linkTo = this.infoIcon;
+        this.model.fetchRoom();
+        this.model.fetchBooking();
+        this.renderRoom();
     }
 
     render(){
@@ -148,7 +177,8 @@ export default class Payment extends Module {
             >
                 <i-vstack
                     gap='15px'
-                    stack={{"grow":"1"}}
+                    stack={{ "grow": "1" }}
+                    overflow="hidden"
                 >
                     <i-hstack
                         verticalAlignment='center'
@@ -221,6 +251,7 @@ export default class Payment extends Module {
                             <i-hstack
                                 gap='10px'
                                 verticalAlignment='center'
+                                wrap="wrap"
                             >
                                 <i-label
                                     caption='Payment methods'
@@ -348,6 +379,7 @@ export default class Payment extends Module {
                                 <i-vstack
                                     id='pnlCreditCard'
                                     visible={false}
+                                    gap="15px"
                                 >
                                     <i-panel
                                         display='inline'
@@ -368,8 +400,20 @@ export default class Payment extends Module {
                                     </i-panel>
                                     <i-hstack
                                         verticalAlignment='center'
-                                        gap={8}
+                                        gap={10}
                                     >
+                                        <i-image
+                                            url="https://static.travala.com/resources/images-pc/stripe/visa.png"
+                                            width="auto" height="40px"
+                                        ></i-image>
+                                        <i-image
+                                            url="https://static.travala.com/resources/images-pc/stripe/master-card.png"
+                                            width="auto" height="40px"
+                                        ></i-image>
+                                        <i-image
+                                            url="https://static.travala.com/resources/images-pc/stripe/american.png"
+                                            width="auto" height="40px"
+                                        ></i-image>
                                     </i-hstack>
                                     <i-label
                                         caption='Card number*'
@@ -382,7 +426,7 @@ export default class Payment extends Module {
                                         height={40}
                                         background={{"color":"var(--input-background)"}}
                                         padding={{"left":15,"right":15}}
-                                        border={{"radius":4}}
+                                        border={{"radius":4, width: '1px', style: 'solid', color: Theme.divider}}
                                     >
                                         <i-icon
                                             name='credit-card'
@@ -452,16 +496,60 @@ export default class Payment extends Module {
                                 display='inline'
                             >
                             </i-label>
-                            <i-icon
-                                name='exclamation-circle'
-                                width={14}
-                                height={14}
-                                padding={{"left":4}}
-                                fill='var(--text-secondary)'
-                                opacity='0.5'
-                                cursor='pointer'
-                            >
-                            </i-icon>
+                            <i-panel display="inline">
+                                <i-icon
+                                    id="infoIcon"
+                                    name='exclamation-circle'
+                                    width={14}
+                                    height={14}
+                                    padding={{"left":4}}
+                                    fill='var(--text-secondary)'
+                                    opacity='0.5'
+                                    cursor='pointer'
+                                >
+                                </i-icon>
+                                <i-popover
+                                    id='infoPopover'
+                                    placement='top'
+                                    trigger="hover"
+                                    visible={false}
+                                    isArrowShown={true}
+                                    minWidth="300px"
+                                    maxWidth="70%"
+                                    border={{ "color": Theme.divider, "width": "1px", style: 'solid', radius: 5 }}
+                                    background={{color: Theme.colors.warning.main}}
+                                >
+                                    <i-panel padding={{ top: 4, bottom: 4, left: 4, right: 4 }} border={{ radius: 'inherit' }}>
+                                        <i-vstack
+                                            gap={8}
+                                        >
+                                            <i-label
+                                                caption='Partial payment'
+                                                display='block'
+                                                padding={{ "bottom": 8 }}
+                                                font={{ "size": "15px", "weight": 600 }}
+                                            >
+                                            </i-label>
+                                            <i-panel display="inline">
+                                                <i-label
+                                                    caption='Did you know that you can make a partial payment for this booking in Travel Credits, Promo Credits or AVA?'
+                                                    display="inline"
+                                                    font={{size: '12px', style: 'italic'}}
+                                                >
+                                                </i-label>
+                                                <i-label
+                                                    caption='Learn more'
+                                                    display="inline"
+                                                    font={{ size: '12px', style: 'italic', color: Theme.colors.primary.main }}
+                                                    link={{href: ""}}
+                                                    padding={{left: '4px'}}
+                                                >
+                                                </i-label>
+                                            </i-panel>
+                                        </i-vstack>
+                                    </i-panel>
+                                </i-popover>
+                            </i-panel>
                         </i-panel>
                         <i-panel
                             display='inline'
@@ -553,7 +641,7 @@ export default class Payment extends Module {
                     </i-vstack>
                 </i-vstack>
                 <i-vstack
-                    stack={{"basis":"33%"}}
+                    stack={{"basis":"33%", shrink: '0'}}
                 >
                     <i-hstack
                         verticalAlignment='center'
@@ -612,37 +700,17 @@ export default class Payment extends Module {
                                         display='inline'
                                     >
                                         <i-label
-                                            caption='Canary Dalat Hotel'
+                                            id="lblHotelName"
+                                            caption=""
                                             font={{"size":"15px","weight":600}}
                                             display='inline'
                                         >
                                         </i-label>
                                         <i-panel
+                                            id="pnlRoomStar"
                                             display='inline'
                                             padding={{"left":4}}
-                                        >
-                                            <i-icon
-                                                name='star'
-                                                width='12px'
-                                                height='12px'
-                                                fill='var(--colors-warning-main)'
-                                            >
-                                            </i-icon>
-                                            <i-icon
-                                                name='star'
-                                                width='12px'
-                                                height='12px'
-                                                fill='var(--colors-warning-main)'
-                                            >
-                                            </i-icon>
-                                            <i-icon
-                                                name='star'
-                                                width='12px'
-                                                height='12px'
-                                                fill='var(--colors-warning-main)'
-                                            >
-                                            </i-icon>
-                                        </i-panel>
+                                        ></i-panel>
                                     </i-panel>
                                     <i-hstack
                                         gap={4}
@@ -655,7 +723,8 @@ export default class Payment extends Module {
                                         >
                                         </i-icon>
                                         <i-label
-                                            caption='Canary Islands, Turks and Caicos Islands'
+                                            id="lblHotelAddress"
+                                            caption=""
                                             font={{"size":"12px","weight":600}}
                                         >
                                         </i-label>
@@ -674,7 +743,8 @@ export default class Payment extends Module {
                                             horizontalAlignment='center'
                                         >
                                             <i-label
-                                                caption='8.5'
+                                                id="lblHotelPoint"
+                                                caption=''
                                                 font={{"color":"#fff"}}
                                                 margin={{"top":"-5px","right":"0px","bottom":"0px","left":"0px"}}
                                             >
@@ -685,12 +755,14 @@ export default class Payment extends Module {
                                             verticalAlignment='center'
                                         >
                                             <i-label
-                                                caption='Excellent'
+                                                id="lblHotelState"
+                                                caption=''
                                                 font={{"size":"18px","weight":600,"color":"var(--colors-success-main)"}}
                                             >
                                             </i-label>
                                             <i-label
-                                                caption='16 Reviews'
+                                                id="lblHotelReviewers"
+                                                caption=''
                                                 font={{"size":"13px","weight":600}}
                                             >
                                             </i-label>
@@ -800,7 +872,7 @@ export default class Payment extends Module {
                             </i-label>
                         </i-panel>
                         <i-label
-                            caption='Room 1:3 adults'
+                            caption='Room 1: 3 adults'
                             font={{"size":"15px"}}
                         >
                         </i-label>
@@ -829,11 +901,12 @@ export default class Payment extends Module {
                                     id='policyPopover'
                                     placement='top'
                                     visible={false}
+                                    trigger="hover"
                                     minWidth="300px"
                                     maxWidth="70%"
                                     border={{"color": Theme.divider,"width":"1px", style: 'solid', radius: 5}}
                                 >
-                                    <i-panel padding={{top: 6, bottom: 6, left: 6, right: 6}} border={{radius: 'inherit'}}>
+                                    <i-panel padding={{top: 4, bottom: 4, left: 4, right: 4}} border={{radius: 'inherit'}}>
                                         <i-vstack
                                             gap={8}
                                         >
