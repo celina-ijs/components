@@ -24708,10 +24708,12 @@ declare module "@ijstech/popover/style/popover.css.ts" {
     export const getNoBackdropStyle: () => string;
     export const getAbsoluteWrapperStyle: (left: string, top: string) => string;
     export const popoverMainContentStyle: string;
+    export const popoverArrowStyle: string;
 }
 /// <amd-module name="@ijstech/popover/popover.ts" />
 declare module "@ijstech/popover/popover.ts" {
     import { Control, ControlElement, Container, IBackground, IBorder, Background, Border, ISpace } from '@ijstech/base';
+    import { TriggerType } from '@ijstech/types';
     export type popoverPlacementType = 'center' | 'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight' | 'rightTop' | 'left' | 'right';
     type eventCallback = (target: Control) => void;
     type PopoverPositionType = "fixed" | "absolute";
@@ -24719,6 +24721,8 @@ declare module "@ijstech/popover/popover.ts" {
         placement?: popoverPlacementType;
         closeOnScrollChildFixed?: boolean;
         item?: Control;
+        trigger?: TriggerType;
+        isArrowShown?: boolean;
         onOpen?: eventCallback;
         onClose?: eventCallback;
     }
@@ -24737,6 +24741,8 @@ declare module "@ijstech/popover/popover.ts" {
         private overlayDiv;
         private _placement;
         private _wrapperPositionAt;
+        private _trigger;
+        private _isArrowShown;
         private insideClick;
         private boundHandlePopoverMouseDown;
         private boundHandlePopoverMouseUp;
@@ -24753,6 +24759,14 @@ declare module "@ijstech/popover/popover.ts" {
         set item(value: Control);
         get position(): PopoverPositionType;
         set position(value: PopoverPositionType);
+        get isSmallScreen(): boolean;
+        get parent(): Control | undefined;
+        set parent(value: Control | undefined);
+        set linkTo(value: Control);
+        get linkTo(): Control;
+        get isArrowShown(): boolean;
+        set isArrowShown(value: boolean);
+        private handleHoverEvent;
         _handleClick(event: MouseEvent): boolean;
         private positionPopoverRelativeToParent;
         private calculatePopoverWrapperCoordinates;
@@ -24772,6 +24786,8 @@ declare module "@ijstech/popover/popover.ts" {
         set border(value: IBorder);
         get padding(): ISpace;
         set padding(value: ISpace);
+        get trigger(): TriggerType;
+        set trigger(value: TriggerType);
         protected removeTargetStyle(target: HTMLElement, propertyName: string): void;
         protected setTargetStyle(target: HTMLElement, propertyName: string, value: string): void;
         protected init(): void;

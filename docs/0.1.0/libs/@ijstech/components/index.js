@@ -20230,7 +20230,17 @@ define("@ijstech/modal/modal.ts", ["require", "exports", "@ijstech/base", "@ijst
                     default: DEFAULT_VALUES.closeOnScrollChildFixed
                 }
             },
-            events: {},
+            events: {
+                onOpen: [
+                    { name: 'target', type: 'Control', isControl: true }
+                ],
+                onClose: [
+                    { name: 'target', type: 'Control', isControl: true }
+                ],
+                onBeforeClose: [
+                    { name: 'target', type: 'Control', isControl: true }
+                ],
+            },
             dataSchema: {
                 type: 'object',
                 properties: {
@@ -36614,12 +36624,15 @@ define("@ijstech/popover/style/popover.css.ts", ["require", "exports", "@ijstech
         top: '0'
     });
 });
-define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@ijstech/style", "@ijstech/popover/style/popover.css.ts"], function (require, exports, base_1, Styles, popover_css_1) {
+define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@ijstech/popover/style/popover.css.ts", "@ijstech/types"], function (require, exports, base_1, popover_css_1, types_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Popover = void 0;
-    const Theme = Styles.Theme.ThemeVars;
     const showEvent = new Event('show');
+    const DEFAULT_VALUES = {
+        placement: 'center',
+        closeOnScrollChildFixed: false,
+    };
     let Popover = class Popover extends base_1.Container {
         constructor(parent, options) {
             super(parent, options, {
@@ -36927,7 +36940,43 @@ define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@
         }
     };
     Popover = __decorate([
-        (0, base_1.customElements)('i-popover')
+        (0, base_1.customElements)('i-popover', {
+            icon: 'window-restore',
+            group: types_1.GroupType.BASIC,
+            className: 'Popover',
+            props: {
+                placement: {
+                    type: 'string',
+                    default: DEFAULT_VALUES.placement
+                },
+                closeOnScrollChildFixed: {
+                    type: 'boolean',
+                    default: DEFAULT_VALUES.closeOnScrollChildFixed
+                }
+            },
+            events: {
+                onOpen: [
+                    { name: 'target', type: 'Control', isControl: true }
+                ],
+                onClose: [
+                    { name: 'target', type: 'Control', isControl: true }
+                ]
+            },
+            dataSchema: {
+                type: 'object',
+                properties: {
+                    placement: {
+                        type: 'string',
+                        enum: ['center', 'bottom', 'bottomLeft', 'bottomRight', 'top', 'topLeft', 'topRight', 'rightTop', 'left', 'right'],
+                        default: DEFAULT_VALUES.placement,
+                    },
+                    closeOnScrollChildFixed: {
+                        type: 'boolean',
+                        default: DEFAULT_VALUES.closeOnScrollChildFixed
+                    }
+                }
+            }
+        })
     ], Popover);
     exports.Popover = Popover;
 });

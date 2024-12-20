@@ -1050,7 +1050,44 @@ define("@scom/scom-scbook/event.ts", ["require", "exports"], function (require, 
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
 });
-define("@scom/scom-scbook/header.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-scbook/store/index.ts", "@scom/scom-scbook/search.tsx", "@scom/scom-scbook/header.css.ts"], function (require, exports, components_6, index_2, search_1) {
+define("@scom/scom-scbook/utils.ts", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.convertPath = exports.stringToSlug = void 0;
+    ///<amd-module name='@scom/scom-scbook/utils.ts'/> 
+    function stringToSlug(str) {
+        str = str
+            .replace(/^\s+|\s+$/g, '')
+            .replace(/[A-Z]/g, function (s) {
+            return "-" + s;
+        })
+            .replace(/^-+|-+$/g, '')
+            .toLowerCase();
+        const from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+        const to = "aaaaeeeeiiiioooouuuunc------";
+        for (let i = 0, l = from.length; i < l; i++) {
+            str = str.replace(from[i], to[i]);
+        }
+        str = str.replace(/[^a-z0-9-#]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-');
+        return str;
+    }
+    exports.stringToSlug = stringToSlug;
+    function convertPath(path) {
+        if (!path)
+            return '';
+        if (path === 'README.md')
+            return 'readme';
+        // @ts-ignore
+        let slug = path.replaceAll('.md', '').replaceAll('/README', '').replaceAll('/readme', '');
+        const splitted = slug.split('/').map(s => stringToSlug(s));
+        slug = splitted.join('/');
+        return slug;
+    }
+    exports.convertPath = convertPath;
+});
+define("@scom/scom-scbook/header.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-scbook/store/index.ts", "@scom/scom-scbook/utils.ts", "@scom/scom-scbook/search.tsx", "@scom/scom-scbook/header.css.ts"], function (require, exports, components_6, index_2, utils_1, search_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DocsHeader = exports.Search = void 0;
@@ -1107,7 +1144,7 @@ define("@scom/scom-scbook/header.tsx", ["require", "exports", "@ijstech/componen
                     // console.log('acc', acc)
                     let id = 0;
                     for (const index of this.searchIndex) {
-                        index['slug'] = index['slug'].replace('.md', '').toLowerCase().replace('/readme', '');
+                        index['slug'] = (0, utils_1.convertPath)(index['slug']);
                         index['id'] = ++id;
                     }
                     this.searchBar.buildIndex(this.searchIndex, ['title', 'text'], ['title', 'text', 'slug']);
@@ -1286,6 +1323,7 @@ define("@scom/scom-scbook/header.tsx", ["require", "exports", "@ijstech/componen
             }
         }
         async loadFile(path) {
+            let count = 0;
             return new Promise((resolve, reject) => {
                 const load = async (p) => {
                     try {
@@ -1294,18 +1332,16 @@ define("@scom/scom-scbook/header.tsx", ["require", "exports", "@ijstech/componen
                             resolve(response);
                         }
                         else if (response.status == 404) {
-                            resolve(response);
-                        }
-                        else {
-                            setTimeout(() => {
-                                load(p);
-                            }, 5000);
+                            if (count < 0) {
+                                setTimeout(() => {
+                                    load(p);
+                                    count++;
+                                }, 5000);
+                            }
                         }
                     }
                     catch (e) {
-                        setTimeout(() => {
-                            load(p);
-                        }, 5000);
+                        console.error('load header failed: ', p);
                     }
                 };
                 load(path);
@@ -2179,7 +2215,7 @@ define("@scom/scom-scbook/paging.tsx", ["require", "exports", "@ijstech/componen
     ], DocsPaging);
     exports.DocsPaging = DocsPaging;
 });
-define("@scom/scom-scbook/main.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-scbook/search.tsx", "@scom/scom-scbook/header.tsx", "@scom/scom-scbook/navigator.tsx", "@scom/scom-scbook/paging.tsx", "@scom/scom-scbook/store/index.ts", "@scom/scom-scbook/main.css.ts"], function (require, exports, components_11, search_2, header_1, navigator_1, paging_1, index_5) {
+define("@scom/scom-scbook/main.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-scbook/search.tsx", "@scom/scom-scbook/header.tsx", "@scom/scom-scbook/navigator.tsx", "@scom/scom-scbook/paging.tsx", "@scom/scom-scbook/store/index.ts", "@scom/scom-scbook/utils.ts", "@scom/scom-scbook/main.css.ts"], function (require, exports, components_11, search_2, header_1, navigator_1, paging_1, index_5, utils_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SCBook = exports.DocsPaging = exports.DocsNavigator = exports.DocsHeader = exports.Search = void 0;
@@ -2307,13 +2343,9 @@ define("@scom/scom-scbook/main.tsx", ["require", "exports", "@ijstech/components
             if (themes)
                 this.themes = typeof themes === 'string' ? JSON.parse(themes) : themes;
             this.theme = this._theme || this.themes?.default || 'light';
-            window.addEventListener('beforeunload', () => {
-                return "Do you really want to close?";
-            });
         }
         async reloadPage() {
-            console.log('reloadPage');
-            if (this.showHeader) {
+            if (this.showHeader && this.docsHeader) {
                 this.docsHeader.multilingual = this.multilingual;
                 await this.docsHeader.loadHeader(this.entrypoint);
             }
@@ -2419,7 +2451,7 @@ define("@scom/scom-scbook/main.tsx", ["require", "exports", "@ijstech/components
                     if (mainPath.startsWith('/'))
                         mainPath = mainPath.slice(1);
                     const tempCurrentDir = currentDir.replace(`${languagePath}/`, '');
-                    mainPath = (mainPath.toLowerCase()).replace(tempCurrentDir, '');
+                    mainPath = mainPath.replace(tempCurrentDir, '');
                     let newRootDir = this.entrypoint;
                     if (newRootDir.endsWith('/'))
                         newRootDir = newRootDir.slice(0, -1);
@@ -2570,25 +2602,23 @@ define("@scom/scom-scbook/main.tsx", ["require", "exports", "@ijstech/components
                             if (element) { 
                                 const top = element.offsetTop + element.offsetHeight
                                 window.scrollTo(0, top - 80);
-                                // element.scrollIntoView({ behavior: 'smooth' });
                             } 
                         })(event)" slug="${newPath}" href="${newPath}">${text}</a>`;
                         }
                         else {
                             if (href.startsWith('/'))
-                                href = href.substr(1);
-                            let newSlug = href.toLowerCase();
+                                href = href.slice(1);
+                            let newSlug = href;
                             const lgPath = (0, index_5.getLanguagePath)();
                             if (this.multilingual && !newSlug.startsWith(lgPath))
                                 newSlug = `${lgPath}/${newSlug}`;
-                            let newPath = `#/${newSlug}`;
-                            if (newPath)
-                                newPath = newPath.replace('.md', '').replace('/readme', '');
+                            let newPath = '';
+                            if (newSlug)
+                                newPath = `#/${(0, utils_2.convertPath)(newSlug)}`;
                             return `<a class="internal-link" href="${newPath}" slug="${newPath}">${text}</a>`;
                         }
                     }
                     ;
-                    href = href.toLowerCase();
                     if (href.includes('..')) {
                         let baseUri = href.slice(0, href.indexOf('../'));
                         if (baseUri.endsWith('/'))
@@ -2598,11 +2628,8 @@ define("@scom/scom-scbook/main.tsx", ["require", "exports", "@ijstech/components
                     }
                     let mainHref = href.slice(href.indexOf('#/') + 2);
                     if (mainHref.startsWith('/'))
-                        mainHref = mainHref.substr(1);
-                    let newSlug = mainHref
-                        // @ts-ignore
-                        .replaceAll('.md', '')
-                        .replaceAll('/readme', '');
+                        mainHref = mainHref.slice(1);
+                    let newSlug = (0, utils_2.convertPath)(mainHref);
                     const finded = this.flatTree.find((item) => item.slug === newSlug);
                     if (!finded) {
                         newSlug = newSlug.replace(`${slug}`, '');
@@ -2780,7 +2807,7 @@ define("@scom/scom-scbook/main.tsx", ["require", "exports", "@ijstech/components
                     const level = item.match(spaceReg)[0].length / space;
                     const caption = item?.match(captionReg)[1];
                     let file = item?.match(fileReg)[1];
-                    let slug = file.replace('.md', '').toLowerCase().replace('/readme', '');
+                    let slug = (0, utils_2.convertPath)(file);
                     if (this.multilingual) {
                         const lg = (0, index_5.getLanguagePath)();
                         file = file.startsWith(lg) ? file : `${lg}/${file}`;

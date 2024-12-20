@@ -1949,6 +1949,7 @@ declare module "@scom/scom-designer/components/properties.tsx" {
         private onBreakpointClick;
         private onPreviewClick;
         private onShowConfig;
+        closePreview(): void;
         init(): void;
         render(): any;
     }
@@ -2091,6 +2092,7 @@ declare module "@scom/scom-designer/designer.tsx" {
             script: string;
         }>;
         onTogglePreview?: (value: boolean) => void;
+        onClose?: () => void;
     }
     global {
         namespace JSX {
@@ -2118,6 +2120,7 @@ declare module "@scom/scom-designer/designer.tsx" {
         private pnlLoading;
         private pnlRightIcon;
         private pnlLeftIcon;
+        private btnClosePreview;
         private pathMapping;
         private mouseDown;
         private resizing;
@@ -2143,6 +2146,7 @@ declare module "@scom/scom-designer/designer.tsx" {
             script: string;
         }>;
         onTogglePreview?: (value: boolean) => void;
+        onClose?: () => void;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomDesignerFormElement, parent?: Container): Promise<ScomDesignerForm>;
         setData(): void;
@@ -2201,6 +2205,7 @@ declare module "@scom/scom-designer/designer.tsx" {
         private updateDesignPosition;
         private handlePreviewChanged;
         private togglePanels;
+        private onClosePreview;
         private handleBreakpoint;
         private onToggleClick;
         private initEvents;
@@ -2284,6 +2289,7 @@ declare module "@scom/scom-designer" {
     import { Container, Control, ControlElement, Module } from '@ijstech/components';
     import { IFileHandler, IIPFSData, IStudio } from "@scom/scom-designer/interface.ts";
     import { ScomDesignerForm } from "@scom/scom-designer/designer.tsx";
+    import { Types } from '@ijstech/compiler';
     import { ScomCodeEditor, Monaco } from '@scom/scom-code-editor';
     type onSaveCallback = (target: ScomCodeEditor, event: any) => void;
     type onChangeCallback = (target: ScomDesigner, event: Event) => void;
@@ -2291,6 +2297,8 @@ declare module "@scom/scom-designer" {
         fileName: string;
         content: string;
     } | null>;
+    type onClosePreviewCallback = () => void;
+    type onRenderErrorCallback = (errors: Types.ICompilerError[]) => void;
     interface ScomDesignerElement extends ControlElement {
         url?: string;
         file?: {
@@ -2306,6 +2314,8 @@ declare module "@scom/scom-designer" {
         }>;
         onTogglePreview?: (value: boolean) => void;
         onImportFile?: onImportCallback;
+        onClosePreview?: onClosePreviewCallback;
+        onRenderError?: onRenderErrorCallback;
     }
     global {
         namespace JSX {
@@ -2345,6 +2355,8 @@ declare module "@scom/scom-designer" {
         }>;
         onImportFile?: onImportCallback;
         onTogglePreview?: (value: boolean) => void;
+        onClosePreview?: onClosePreviewCallback;
+        onRenderError?: onRenderErrorCallback;
         tag: any;
         set previewUrl(url: string);
         addEventHandler(designer: ScomDesignerForm, eventName: string, funcName: string): void;
@@ -2393,6 +2405,7 @@ declare module "@scom/scom-designer" {
         private handleDesignerPreview;
         private updateDesignerCode;
         openFile(file: IIPFSData, parentCid: string, parent: Control, config: any): Promise<void>;
+        clear(): void;
         init(): void;
         private updateTag;
         private setTag;

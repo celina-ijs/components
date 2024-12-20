@@ -78,6 +78,12 @@ declare module "@scom/scom-scbook/event.ts" {
         ScbookLangChanged = "scbookLangChanged"
     }
 }
+/// <amd-module name="@scom/scom-scbook/utils.ts" />
+declare module "@scom/scom-scbook/utils.ts" {
+    function stringToSlug(str: string): string;
+    function convertPath(path: string): any;
+    export { stringToSlug, convertPath };
+}
 /// <amd-module name="@scom/scom-scbook/header.tsx" />
 declare module "@scom/scom-scbook/header.tsx" {
     import { ControlElement, Module, Container } from '@ijstech/components';

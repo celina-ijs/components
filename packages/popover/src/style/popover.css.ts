@@ -73,3 +73,102 @@ Styles.cssRule('i-popover', {
     left: '0',
     top: '0'
 })
+
+const arrowBackgroundColor = "var(--tooltips-arrow-background, rgba(97, 97, 97, 0.92))";
+
+export const popoverArrowStyle = Styles.style({
+    position: 'relative',
+    $nest: {
+        '&.is-top::after': {
+            content: "''",
+            position: "absolute",
+            top: "100%",
+            left: "50%",
+            zIndex: 888,
+            marginLeft: "-5px",
+            borderWidth: "5px",
+            borderStyle: "solid",
+            borderColor: `${arrowBackgroundColor} transparent transparent transparent`,
+        },
+        '&.is-topLeft::after': {
+            content: "''",
+            position: "absolute",
+            top: "100%",
+            left: "0%",
+            marginLeft: "12px",
+            borderWidth: "5px",
+            borderStyle: "solid",
+            borderColor: `${arrowBackgroundColor} transparent transparent transparent`,
+        },
+        '&.is-topRight::after': {
+            content: "''",
+            position: "absolute",
+            top: "100%",
+            right: "0%",
+            marginRight: "12px",
+            borderWidth: "5px",
+            borderStyle: "solid",
+            borderColor: `${arrowBackgroundColor} transparent transparent transparent`,
+        },
+        '&.is-left::after': {
+            content: "''",
+            position: "absolute",
+            top: "50%",
+            left: "100%",
+            marginTop: "-5px",
+            borderWidth: "5px",
+            borderStyle: "solid",
+            borderColor: `transparent transparent transparent ${arrowBackgroundColor}`,
+        },
+        '&.is-right::after': {
+            content: "''",
+            position: "absolute",
+            top: "50%",
+            right: "100%",
+            marginTop: "-5px",
+            borderWidth: "5px",
+            borderStyle: "solid",
+            borderColor: `transparent ${arrowBackgroundColor} transparent transparent`,
+        },
+        '&.is-rightTop::after': {
+            content: "''",
+            position: "absolute",
+            top: "0%",
+            right: "100%",
+            marginTop: "5px",
+            borderWidth: "5px",
+            borderStyle: "solid",
+            borderColor: `transparent ${arrowBackgroundColor} transparent transparent`,
+        },
+        '&.is-bottom::after': {
+            content: "''",
+            position: "absolute",
+            bottom: "100%",
+            left: "50%",
+            marginLeft: "-5px",
+            borderWidth: "5px",
+            borderStyle: "solid",
+            borderColor: `transparent transparent ${arrowBackgroundColor} transparent`,
+        },
+        '&.is-bottomLeft::after': {
+            content: "''",
+            position: "absolute",
+            bottom: "100%",
+            left: "0%",
+            marginLeft: "12px",
+            borderWidth: "5px",
+            borderStyle: "solid",
+            borderColor: `transparent transparent ${arrowBackgroundColor} transparent`,
+        },
+        '&.is-bottomRight::after': {
+            content: "''",
+            position: "absolute",
+            bottom: "100%",
+            right: "0%",
+            marginRight: "12px",
+            borderWidth: "5px",
+            borderStyle: "solid",
+            borderColor: `transparent transparent ${arrowBackgroundColor} transparent`,
+        }
+    }
+})

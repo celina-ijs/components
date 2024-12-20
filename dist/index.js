@@ -36550,7 +36550,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 define("@ijstech/popover/style/popover.css.ts", ["require", "exports", "@ijstech/style"], function (require, exports, Styles) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.popoverMainContentStyle = exports.getAbsoluteWrapperStyle = exports.getNoBackdropStyle = exports.getOverlayStyle = void 0;
+    exports.popoverArrowStyle = exports.popoverMainContentStyle = exports.getAbsoluteWrapperStyle = exports.getNoBackdropStyle = exports.getOverlayStyle = void 0;
     let Theme = Styles.Theme.ThemeVars;
     const getOverlayStyle = () => {
         return Styles.style({
@@ -36623,15 +36623,114 @@ define("@ijstech/popover/style/popover.css.ts", ["require", "exports", "@ijstech
         left: '0',
         top: '0'
     });
+    const arrowBackgroundColor = "var(--tooltips-arrow-background, rgba(97, 97, 97, 0.92))";
+    exports.popoverArrowStyle = Styles.style({
+        position: 'relative',
+        $nest: {
+            '&.is-top::after': {
+                content: "''",
+                position: "absolute",
+                top: "100%",
+                left: "50%",
+                zIndex: 888,
+                marginLeft: "-5px",
+                borderWidth: "5px",
+                borderStyle: "solid",
+                borderColor: `${arrowBackgroundColor} transparent transparent transparent`,
+            },
+            '&.is-topLeft::after': {
+                content: "''",
+                position: "absolute",
+                top: "100%",
+                left: "0%",
+                marginLeft: "12px",
+                borderWidth: "5px",
+                borderStyle: "solid",
+                borderColor: `${arrowBackgroundColor} transparent transparent transparent`,
+            },
+            '&.is-topRight::after': {
+                content: "''",
+                position: "absolute",
+                top: "100%",
+                right: "0%",
+                marginRight: "12px",
+                borderWidth: "5px",
+                borderStyle: "solid",
+                borderColor: `${arrowBackgroundColor} transparent transparent transparent`,
+            },
+            '&.is-left::after': {
+                content: "''",
+                position: "absolute",
+                top: "50%",
+                left: "100%",
+                marginTop: "-5px",
+                borderWidth: "5px",
+                borderStyle: "solid",
+                borderColor: `transparent transparent transparent ${arrowBackgroundColor}`,
+            },
+            '&.is-right::after': {
+                content: "''",
+                position: "absolute",
+                top: "50%",
+                right: "100%",
+                marginTop: "-5px",
+                borderWidth: "5px",
+                borderStyle: "solid",
+                borderColor: `transparent ${arrowBackgroundColor} transparent transparent`,
+            },
+            '&.is-rightTop::after': {
+                content: "''",
+                position: "absolute",
+                top: "0%",
+                right: "100%",
+                marginTop: "5px",
+                borderWidth: "5px",
+                borderStyle: "solid",
+                borderColor: `transparent ${arrowBackgroundColor} transparent transparent`,
+            },
+            '&.is-bottom::after': {
+                content: "''",
+                position: "absolute",
+                bottom: "100%",
+                left: "50%",
+                marginLeft: "-5px",
+                borderWidth: "5px",
+                borderStyle: "solid",
+                borderColor: `transparent transparent ${arrowBackgroundColor} transparent`,
+            },
+            '&.is-bottomLeft::after': {
+                content: "''",
+                position: "absolute",
+                bottom: "100%",
+                left: "0%",
+                marginLeft: "12px",
+                borderWidth: "5px",
+                borderStyle: "solid",
+                borderColor: `transparent transparent ${arrowBackgroundColor} transparent`,
+            },
+            '&.is-bottomRight::after': {
+                content: "''",
+                position: "absolute",
+                bottom: "100%",
+                right: "0%",
+                marginRight: "12px",
+                borderWidth: "5px",
+                borderStyle: "solid",
+                borderColor: `transparent transparent ${arrowBackgroundColor} transparent`,
+            }
+        }
+    });
 });
-define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@ijstech/popover/style/popover.css.ts", "@ijstech/types"], function (require, exports, base_1, popover_css_1, types_1) {
+define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@ijstech/style", "@ijstech/popover/style/popover.css.ts", "@ijstech/types"], function (require, exports, base_1, Styles, popover_css_1, types_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Popover = void 0;
+    const Theme = Styles.Theme.currentTheme;
     const showEvent = new Event('show');
     const DEFAULT_VALUES = {
         placement: 'center',
         closeOnScrollChildFixed: false,
+        isArrowShown: false
     };
     let Popover = class Popover extends base_1.Container {
         constructor(parent, options) {
@@ -36674,6 +36773,9 @@ define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@
             return this._placement;
         }
         set placement(value) {
+            if (this.popoverDiv) {
+                this.popoverDiv.classList.remove(`is-${this._placement}`);
+            }
             this._placement = value;
         }
         get item() {
@@ -36690,6 +36792,59 @@ define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@
         }
         set position(value) {
             this._wrapperPositionAt = value;
+        }
+        get isSmallScreen() {
+            return screen.width <= 1024;
+        }
+        get parent() {
+            return super.parent;
+        }
+        set parent(value) {
+            if (super.parent) {
+                super.parent.onmouseover = null;
+                super.parent.onmouseleave = null;
+            }
+            super.parent = value;
+            this.handleHoverEvent(value);
+        }
+        set linkTo(value) {
+            if (super.linkTo) {
+                super.linkTo.onmouseover = null;
+                super.linkTo.onmouseleave = null;
+            }
+            this._linkTo = value;
+            this.handleHoverEvent(value);
+        }
+        get linkTo() {
+            return this._linkTo;
+        }
+        get isArrowShown() {
+            return this._isArrowShown ?? false;
+        }
+        set isArrowShown(value) {
+            this._isArrowShown = value ?? false;
+            if (value) {
+                this.popoverDiv.classList.add(popover_css_1.popoverArrowStyle);
+            }
+            else {
+                this.popoverDiv.classList.remove(popover_css_1.popoverArrowStyle);
+            }
+        }
+        handleHoverEvent(target) {
+            if (target && this.trigger === 'hover') {
+                if (this._designMode)
+                    return;
+                target.onmouseover = (event) => {
+                    event.stopImmediatePropagation();
+                    event.preventDefault();
+                    this.visible = true;
+                };
+                target.onmouseleave = (event) => {
+                    event.stopImmediatePropagation();
+                    event.preventDefault();
+                    this.visible = false;
+                };
+            }
         }
         _handleClick(event) {
             return true;
@@ -36792,8 +36947,10 @@ define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@
             return { top, left };
         }
         _handleOnShow(event) {
-            if (this.placement && this.enabled)
+            if (this.placement && this.enabled) {
                 this.positionPopoverRelativeToParent(this.placement);
+                this.popoverDiv.classList.add(`is-${this.placement}`);
+            }
             if (this.enabled && this._onOpen) {
                 event.preventDefault();
                 this._onOpen(this);
@@ -36834,6 +36991,7 @@ define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@
             else {
                 this._background.setBackgroundStyle(value);
             }
+            this.style.setProperty("--tooltips-arrow-background", value.color || Theme.background.modal);
         }
         get width() {
             return (!isNaN(this._width) ? this._width : this.offsetWidth);
@@ -36864,6 +37022,12 @@ define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@
             else
                 this._padding.update(value);
         }
+        get trigger() {
+            return this._trigger;
+        }
+        set trigger(value) {
+            this._trigger = value;
+        }
         removeTargetStyle(target, propertyName) {
             let style = this.propertyClassMap[propertyName];
             if (style)
@@ -36881,6 +37045,7 @@ define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@
                 if (this.options?.onClose)
                     this.onClose = this.options.onClose;
                 this.placement = this.getAttribute('placement', true);
+                this.trigger = this.getAttribute('trigger', true);
                 this.wrapperDiv = this.createElement('div', this);
                 this.popoverDiv = this.createElement('div', this.wrapperDiv);
                 this.bodyDiv = this.createElement('div', this.popoverDiv);
@@ -36905,6 +37070,9 @@ define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@
                 if (itemAttr)
                     this.item = itemAttr;
                 super.init();
+                const linkTo = this.getAttribute('linkTo', true);
+                if (linkTo)
+                    this.linkTo = linkTo;
                 const maxWidth = this.getAttribute('maxWidth', true);
                 if (maxWidth !== undefined)
                     this.setPropertyValue('maxWidth', this.maxWidth);
@@ -36931,6 +37099,7 @@ define("@ijstech/popover/popover.ts", ["require", "exports", "@ijstech/base", "@
                 }
                 const noBackdropStyle = (0, popover_css_1.getNoBackdropStyle)();
                 this.setTargetStyle(this.wrapperDiv, 'showBackdrop', noBackdropStyle);
+                this.isArrowShown = this.getAttribute('isArrowShown', true, DEFAULT_VALUES.isArrowShown);
             }
         }
         static async create(options, parent) {
